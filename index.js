@@ -23,6 +23,11 @@ async function run() {
 
     const db = client.db("drivefleet")
     const carCollection = db.collection("cars")
+   
+    app.get('/explore-cars',async(req,res)=>{
+        const result = await carCollection.find().toArray()
+        res.json(result)
+    })
 
     app.post('/car' ,async(req,res)=>{
         const carData =  req.body
