@@ -55,10 +55,37 @@ async function run() {
     const carCollection = db.collection("cars")
     const bookingCollection = db.collection("bookings")
 
-    app.get('/explore-cars', async (req, res) => {
-      const result = await carCollection.find().toArray()
-      res.json(result)
-    })
+    app.get("/explore-cars", async (req, res) => {
+  try {
+    const { search, type } = req.query;
+
+    let query = {};
+
+    // 🔍 Search by car name
+    if (search) {
+      query.carName = {
+        $regex: search,
+        $options: "i",
+      };
+    }
+
+    // 🚗 Filter by car type
+    if (type) {
+      query.carType = type;
+    }
+
+    // console.log("QUERY:", query);
+
+    const result = await carCollection.find(query).toArray();
+
+    res.json(result);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
 
     app.post('/car', async (req, res) => {
       const carData = req.body
