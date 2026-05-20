@@ -61,7 +61,7 @@ async function run() {
 
     let query = {};
 
-    // 🔍 Search by car name
+   
     if (search) {
       query.carName = {
         $regex: search,
@@ -69,7 +69,7 @@ async function run() {
       };
     }
 
-    // 🚗 Filter by car type
+  
     if (type) {
       query.carType = type;
     }
@@ -87,11 +87,17 @@ async function run() {
   }
 });
 
-    app.post('/car', async (req, res) => {
-      const carData = req.body
-      const result = await carCollection.insertOne(carData)
-      res.json(result)
-    })
+    app.post("/car", async (req, res) => {
+  const carData = req.body;
+
+  const newCar = {
+    ...carData,
+    booking_count: 0, 
+  };
+
+  const result = await carCollection.insertOne(newCar);
+  res.json(result);
+});
 
     app.get('/cars/:id', verifyToken ,async (req, res) => {
       const { id } = req.params
@@ -99,11 +105,18 @@ async function run() {
       res.json(result)
     })
 
-    app.post('/booking', async (req, res) => {
-      const bookingData = req.body
-      const result = await bookingCollection.insertOne(bookingData)
-      res.json(result)
-    })
+    app.post("/booking", async (req, res) => {
+  const bookingData = req.body;
+
+  await bookingCollection.insertOne(bookingData);
+
+  await carCollection.updateOne(
+    { _id: new ObjectId(bookingData.carId) },
+    { $inc: { booking_count: 1 } }
+  );
+
+  res.json({ success: true });
+});
 
     app.get("/bookings/:userId", async (req, res) => {
       const { userId } = req.params
